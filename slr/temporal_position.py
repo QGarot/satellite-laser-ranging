@@ -1,7 +1,5 @@
-from decimal import Decimal
-
 class TemporalPosition:
-    def __init__(self, time: Decimal, x: float, y: float, z: float):
+    def __init__(self, time: float, x: float, y: float, z: float):
         self.time = time
         self.x = x
         self.y = y
