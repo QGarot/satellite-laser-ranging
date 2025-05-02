@@ -3,3 +3,4 @@
 data/*.txt
 __pycache__
 data/binary/rotary_matrix_file.npy
+data/txt.zip
