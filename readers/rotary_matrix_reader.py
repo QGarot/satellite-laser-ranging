@@ -1,9 +1,14 @@
 from readers.reader import Reader
 from slr.temporal_matrix import TemporalMatrix
+import numpy as np
 
 class RotaryMatrixReader(Reader):
     def __init__(self, file: str):
         super().__init__(file)
+        self.memory_map = np.memmap(self.npy_file,
+                                    mode="r",
+                                    shape=(self.number_of_recordings, self.number_of_columns),
+                                    dtype=float)
 
     def get_temporal_rotary_matrix(self, n: int) -> TemporalMatrix:
         """

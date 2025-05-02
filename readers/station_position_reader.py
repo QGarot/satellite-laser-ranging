@@ -1,9 +1,14 @@
 from readers.reader import Reader
 from slr.temporal_position import TemporalPosition
+import numpy as np
 
 class StationPositionReader(Reader):
     def __init__(self, file: str):
         super().__init__(file)
+        self.memory_map = np.memmap(self.npy_file,
+                                    mode="r",
+                                    shape=(self.number_of_recordings, self.number_of_columns),
+                                    dtype=float)
 
     def get_temporal_position(self, n: int) -> TemporalPosition:
         """
