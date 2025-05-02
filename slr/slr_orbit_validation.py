@@ -1,6 +1,8 @@
 from readers.normal_point_reader import NormalPointReader
 from readers.rotary_matrix_reader import RotaryMatrixReader
 from readers.station_position_reader import StationPositionReader
+from math import floor
+import numpy as np
 
 
 class SLROrbitValidation:
@@ -44,7 +46,12 @@ class SLROrbitValidation:
         # Distance between t and t0
         d_min = d(t0)
 
-        for i in range(1, self.matrix_reader.number_of_recordings):
+
+        # TODO: write the doc
+        mem = self.matrix_reader.memory_map[:, 0]
+        t_tilde = floor(t * 1000) / 1000
+        p = np.where(mem == t_tilde)[0][0]
+        for i in range(p, self.matrix_reader.number_of_recordings):
             temp_matrix = self.matrix_reader.get_temporal_rotary_matrix(i)
             temp_t0 = temp_matrix.time
             distance = d(temp_t0)
