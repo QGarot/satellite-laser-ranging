@@ -15,8 +15,6 @@ class SLROrbitValidation:
 
         # Rotary matrices
         self.matrix_reader = RotaryMatrixReader("data/rotary_matrix_file.txt")
-        #self.matrix_reader.generate_npy_file(debug=True)
-        print(self.matrix_reader.get_temporal_rotary_matrix(2))
 
     def nearest_neighbour(self, t: float, k: int, debug: bool = False) -> list:
         """
@@ -34,43 +32,49 @@ class SLROrbitValidation:
         :param t: timestamp for which we want to find neighbour matrices
         :return:  neighbourhood of t with size k
         """
+        # Define what is the distance between an arbitrary timestamp tho and t
         d = lambda tho: abs(tho - t)
 
-        # Initialization
-        # Index for which t0 is reached
-        index = 0
-        # R(t0)
-        matrix = self.matrix_reader.get_temporal_rotary_matrix(0)
-        # Nearest timestamp t0
-        t0 = matrix.time
+        # /!\ Important observation /!\
+        # Let's call t_min and t_max the smallest and the largest timestamps recorded in the file.
+        # (*) In the npy file, all timestamps in [t_min, t_max] with exactly three digits after the decimal point are recorded.
+        # That allows to find an initial approximation of t from which we will look for t0, without scanning the array from the beginning.
+
+        # We create the (sorted) array of all timestamps in the npy file.
+        timestamps = self.matrix_reader.memory_map[:, 0]
+        # Given a real timestamp t, we compute its rounded down with three digits after the decimal point.
+        t0 = floor(t * 1000) / 1000
+        # We look for the index p such that mem[p] = t0, which is guaranteed to exist due to (*).
+        p = np.where(timestamps == t0)[0][0]
         # Distance between t and t0
         d_min = d(t0)
 
+        if debug:
+            print(f"[row = {p}], t = {t0}, d_min = {d_min}")
 
-        # TODO: write the doc
-        mem = self.matrix_reader.memory_map[:, 0]
-        t_tilde = floor(t * 1000) / 1000
-        p = np.where(mem == t_tilde)[0][0]
-        for i in range(p, self.matrix_reader.number_of_recordings):
-            temp_matrix = self.matrix_reader.get_temporal_rotary_matrix(i)
-            temp_t0 = temp_matrix.time
-            distance = d(temp_t0)
-            if distance < d_min:
-                d_min = distance
-                index = i
-                matrix = temp_matrix
+        for i in range(p + 1, self.matrix_reader.number_of_recordings):
+            temp_t0 = timestamps[i]
+            temp_distance = d(temp_t0)
+
+            if debug:
+                print(f"[row = {i}], t = {temp_t0}, d_min = {temp_distance}")
+
+            if temp_distance < d_min: # if we find a better approximation of t, then we save it as following.
+                d_min = temp_distance
+                p = i
                 t0 = temp_t0
+            else: # Otherwise, as 'timestamps' is sorted, we cannot find a better approximation of t anymore.
                 if debug:
-                    print(f"Temporary minimum (distance): d = {d_min}")
-            else:
+                    print(f"The value t = {t} has been exceeded")
                 break
 
+        matrix = self.matrix_reader.get_temporal_rotary_matrix(p).matrix
         if debug:
-            print(f"Index of R(t0): {index}. |t0 - t| = {d_min}\n"
+            print(f"Index of R(t0): {p}. |t0 - t| = {d_min}\n"
                   f"{matrix}")
 
-        predecessors = [self.matrix_reader.get_temporal_rotary_matrix(index - m) for m in range(1, k + 1)]
-        successors = [self.matrix_reader.get_temporal_rotary_matrix(index + m) for m in range(1, k + 1)]
+        predecessors = [self.matrix_reader.get_temporal_rotary_matrix(p - m) for m in range(1, k + 1)][::-1] # reverse order
+        successors = [self.matrix_reader.get_temporal_rotary_matrix(p + m) for m in range(1, k + 1)]
         neighbourhood = predecessors + [matrix] + successors
 
         return neighbourhood
