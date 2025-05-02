@@ -2,3 +2,4 @@
 .venv
 data/*.txt
 __pycache__
+data/binary/rotary_matrix_file.npy
