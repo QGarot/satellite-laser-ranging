@@ -1,6 +1,5 @@
 from readers.reader import Reader
 from slr.normal_point import NormalPoint
-from decimal import Decimal, getcontext
 
 class NormalPointReader(Reader):
     def __init__(self, file: str):

@@ -4,10 +4,14 @@ from readers.station_position_reader import StationPositionReader
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    #np_reader = NormalPointReader("data/normalsPoints_gracefo1_7810_2021-12.txt")
-    #np_reader.generate_npy_file(debug=True)
-    pos_reader = StationPositionReader("data/stationPosition.7810.slr.txt")
+    # Normal points
+    np_reader = NormalPointReader("data/normals_points_file.txt")
+    np_reader.generate_npy_file(debug=True)
+
+    # Station positions
+    pos_reader = StationPositionReader("data/station_position.txt")
     pos_reader.generate_npy_file(debug=True)
-    #matrix_reader = RotaryMatrixReader("data/rotaryMatrix_2021-12.txt")
-    #matrix_reader.generate_npy_file(log=True)
-    #print(matrix_reader.read(2))
+
+    # Rotary matrices
+    matrix_reader = RotaryMatrixReader("data/rotary_matrix_file.txt")
+    matrix_reader.generate_npy_file(debug=True)
