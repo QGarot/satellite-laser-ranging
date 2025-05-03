@@ -1,3 +1,4 @@
+from include.interpolation import neville
 from readers.normal_point_reader import NormalPointReader
 from readers.rotary_matrix_reader import RotaryMatrixReader
 from readers.station_position_reader import StationPositionReader
@@ -71,19 +72,19 @@ class SLROrbitValidation:
                     print(f"The value t = {t} has been exceeded")
                 break
 
-        matrix = self.matrix_reader.get_temporal_rotary_matrix(p).matrix
+        temporal_matrix = self.matrix_reader.get_temporal_rotary_matrix(p)
         if debug:
             print(f"Index of R(t0): {p}. |t0 - t| = {d_min}\n"
-                  f"{matrix}")
+                  f"{temporal_matrix.matrix}")
 
         predecessors = [self.matrix_reader.get_temporal_rotary_matrix(p - m) for m in range(1, k + 1)][::-1] # reverse order
         successors = [self.matrix_reader.get_temporal_rotary_matrix(p + m) for m in range(1, k + 1)]
-        neighbourhood = predecessors + [matrix] + successors
+        neighbourhood = predecessors + [temporal_matrix] + successors
 
         return neighbourhood
 
     @staticmethod
-    def trf_to_crf(rotation_matrix: np.ndarray, x: np.ndarray) -> np.ndarray:
+    def trf_to_crf(rotation_matrix: np.ndarray, x: np.ndarray[float]) -> np.ndarray[float]:
         """
         Returns the corresponding vector in Celestial Reference Frame (CRF).
         :param rotation_matrix: rotation matrix
@@ -106,3 +107,50 @@ class SLROrbitValidation:
         p = np.where(timestamps == t0)[0][0]
 
         return self.pos_reader.get_temporal_position(p)
+
+    def get_crf_position(self, t: float, order: int) -> TemporalPosition:
+        """
+        Returns a temporal position instance corresponding to the position (in the CRF) of the station at the given timestamp.
+
+        The algorithm is the following:
+        (1) Get the position of the station (in the TRF) for the corresponding day (station positions npy file gives the
+        station's position for each day)
+        (2) Get the neighbour matrices of t w.r.t the given order (size of the neighbourhood)
+        (3) For each matrice in the defined neighbourhood, compute the temporal position of the station (in the CRF) and store the
+        result in a list (cf 'crf_points')
+        (4) At this stage, we have a list of temporal positions in the CRF from which we want to interpolate the position
+        of the station at the given timestamp. We perform an interpolation using Neville-Aitken's algorithm for each component.
+        (5) Return the temporal position object corresponding to the constructed vector and the given timestamp.
+        :param t: timestamp for which we want to find the position of the station
+        :param order: order of the interpolation
+        :return: temporal position instance corresponding to the position (in the CRF) of the station at the given timestamp
+        """
+        trf_pos = self.get_station_position(t)
+        nearest_neighbour = self.nearest_neighbour(t, order)
+        print(type(nearest_neighbour[0]))
+        # List of CRF temporal positions corresponding to the nearest matrices
+        crf_points = []
+
+        for rotation in nearest_neighbour:
+            # Get the matrix and its corresponding timestamp
+            rotation_matrix = rotation.matrix
+            timestamp = rotation.time
+            # Conversion TRF -> CRF
+            crf_vector = self.trf_to_crf(rotation_matrix, trf_pos.vector)
+            # Create the temporal point associated and save it
+            crf_pos = TemporalPosition(timestamp, crf_vector[0], crf_vector[1], crf_vector[2])
+            crf_points.append(crf_pos)
+
+        # x interpolation
+        data_set = [(temporal_crf_point.time, temporal_crf_point.vector[0]) for temporal_crf_point in crf_points]
+        x = neville(data_set, t)
+
+        # y interpolation
+        data_set = [(temporal_crf_point.time, temporal_crf_point.vector[1]) for temporal_crf_point in crf_points]
+        y = neville(data_set, t)
+
+        # z interpolation
+        data_set = [(temporal_crf_point.time, temporal_crf_point.vector[2]) for temporal_crf_point in crf_points]
+        z = neville(data_set, t)
+
+        return TemporalPosition(t, x, y, z)

@@ -1,5 +1,5 @@
 """
-Contient les fonctions relatives à la méthode de Neville-Aitken
+Imported from: https://github.com/QGarot/interpolation-vs-dl/blob/main/src/neville_aitken.py
 """
 
 import numpy as np
