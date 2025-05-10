@@ -4,3 +4,8 @@ data/*.txt
 __pycache__
 data/binary/rotary_matrix_file.npy
 data/txt.zip
+data/orbit/*.txt
+static/txt/orbits/*.txt
+static/txt/slr/*.txt
+static/binary/orbits/*.npy
+static/binary/slr/*.npy

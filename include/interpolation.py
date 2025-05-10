@@ -1,5 +1,6 @@
 """
 Imported from: https://github.com/QGarot/interpolation-vs-dl/blob/main/src/neville_aitken.py
+Overview: https://en.wikipedia.org/wiki/Neville%27s_algorithm
 """
 
 import numpy as np

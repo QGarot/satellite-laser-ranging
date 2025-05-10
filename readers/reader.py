@@ -16,8 +16,10 @@ class Reader:
         Generates the string of the npy file name.
         :return: complete npy file name
         """
-        base = self.file.split("/")[1].split(".")[0]
-        return f"data/binary/{base}.npy"
+        base = self.file.split("/")[-1].split(".")[0]
+        # Now we look for the folder (in the txt directory) containing the current file 'self.file'
+        folder = self.file.split("/")[-2]
+        return f"static/binary/{folder}/{base}.npy"
 
     def _load_number_of_columns(self) -> None:
         """
@@ -28,7 +30,7 @@ class Reader:
                 if i == 6: # starting line
                     self.number_of_columns = len(line.strip().split())
                     break
-        print(f"The file {self.file} has {self.number_of_columns} columns.")
+        #print(f"The file {self.file} has {self.number_of_columns} columns.")
 
     def _load_number_of_recordings(self) -> None:
         """
@@ -40,7 +42,7 @@ class Reader:
                     number_of_lines = int(line.strip().split()[0])
                     self.number_of_recordings = number_of_lines
                     break
-        print(f"The file {self.file} has {self.number_of_recordings} recordings.")
+        #print(f"The file {self.file} has {self.number_of_recordings} recordings.")
 
     def generate_npy_file(self, debug: bool = False) -> None:
         """

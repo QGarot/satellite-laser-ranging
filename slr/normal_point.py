@@ -14,7 +14,7 @@ class NormalPoint:
         this method returns t_transmit + 0.5 * time_of_flight.
         :return: t_bounce, timestamp when the laser light is bounced back on the retro reflector.
         """
-        return self.time + (self.measured_range / 3.00e8)
+        return self.time + (self.measured_range / 3.00e+8) / 86400
 
     def __str__(self) -> str:
         return (f"time: {self.time}, "
