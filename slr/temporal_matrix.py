@@ -5,5 +5,5 @@ class TemporalMatrix:
         self.time = time
         self.matrix = matrix
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"TemporalMatrix(time={self.time}) =\n{self.matrix})"

@@ -74,7 +74,7 @@ class SLROrbitValidation:
 
             plt.show()
 
-    def first_orbit_validation(self):
+    def first_orbit_validation(self) -> None:
         """
         TODO: write the doc
         :return:
@@ -89,17 +89,18 @@ class SLROrbitValidation:
             station_pos = self.get_crf_position(normal_point.time, 3)
             satellite_pos = self.get_satellite_position(normal_point.get_time_bounce(), 3)
             dist = np.linalg.norm(satellite_pos.vector - station_pos.vector)
+            residual = normal_point.measured_range - dist
 
             transmit_timestamps.append(normal_point.time)
             measured_distances.append(normal_point.measured_range)
             computed_distances.append(dist)
-            residuals.append(abs(dist - normal_point.measured_range))
+            residuals.append(residual)
 
-            print(f"NP timestamp [{normal_point.time:.2e}], "
-                  f"t_bounce [{normal_point.get_time_bounce():.2e}], "
+            print(f"NP timestamp [{normal_point.time:.10e}], "
+                  f"t_bounce [{normal_point.get_time_bounce():.10e}], "
                   f"measured dist. [{normal_point.measured_range:.2e}], "
                   f"computed dist. [{dist:.2e}],"
-                  f"error [{abs(dist - normal_point.measured_range):.2e}]")
+                  f"error [{residual:.2e}]")
 
 
         x = np.array(transmit_timestamps)
@@ -109,9 +110,10 @@ class SLROrbitValidation:
 
         #plt.plot(x, y1, "o-", color="green", label="Measured distances")
         #plt.plot(x, y2, "o--", color="red", label="Computed distances")
-        plt.plot(x, y3, "o-", color="#ff7f0e", label="Residuals")
+        plt.plot(x, y3, "o--", color="#ff7f0e", label="Residuals")
 
-        plt.xlabel("Transmit timestamps [MJD]")
+        plt.title("Residuals vs. laser transmission time")
+        plt.xlabel("Laser transmission timestamps [MJD]")
         plt.ylabel("Distance [m]")
         plt.legend()
         plt.grid(True)
