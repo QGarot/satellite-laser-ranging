@@ -1,9 +1,12 @@
 from readers.reader import Reader
 from slr.temporal_position import TemporalPosition
+import numpy as np
 
 class StationPositionReader(Reader):
     def __init__(self, file: str):
         super().__init__(file)
+        self.t0 = self.get_temporal_position(0).time
+        self.dt = 1
 
     def get_temporal_position(self, n: int) -> TemporalPosition:
         """
@@ -22,3 +25,11 @@ class StationPositionReader(Reader):
         temporal_station_position = TemporalPosition(time, x, y, z)
 
         return temporal_station_position
+
+    def get_index(self, t: float) -> int:
+        """
+        Returns the index corresponding to the row containing the nearest timestamp of 't'.
+        :param t: target timestamp to find the closest match for.
+        :return: index of the row with the nearest timestamp.
+        """
+        return np.round((t - self.t0) / self.dt).astype(int)

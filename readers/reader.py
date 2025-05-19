@@ -14,8 +14,8 @@ class Reader:
             self.generate_npy_file_v2()
 
         self.loaded_data = np.load(self.npy_file)
-        self.number_of_recordings = self.loaded_data[0]
-        self.number_of_columns = self.loaded_data[1]
+        self.number_of_recordings = self.loaded_data.shape[0]
+        self.number_of_columns = self.loaded_data.shape[1]
 
     def _get_npy_file_name(self) -> str:
         """

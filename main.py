@@ -6,11 +6,11 @@ from slr.slr_orbit_validation import SLROrbitValidation
 # Tests
 def test_txt2npy():
     r = RotaryMatrixReader("statictest/txt/matrices/rotaryMatrix_2021-12.txt")
-    print(r.get_temporal_rotary_matrix_by_time(59549.00033564814924000))
+    #print(r.get_temporal_rotary_matrix_by_time(59549.00033564814924000))
 
 if __name__ == '__main__':
-    # orbit_validation = SLROrbitValidation()
+    orbit_validation = SLROrbitValidation()
     # Residual (difference between the measured range and the real distance) vs. transmission time
-    # orbit_validation.first_orbit_validation()
+    orbit_validation.first_orbit_validation(debug=True)
 
-    test_txt2npy()
+    # test_txt2npy()

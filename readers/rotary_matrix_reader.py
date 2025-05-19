@@ -20,6 +20,10 @@ class RotaryMatrixReader(Reader):
         matrix = row[1:].reshape((3, 3))  # The next 9 values form a 3x3 matrix
         return TemporalMatrix(time, matrix)
 
-    def get_temporal_rotary_matrix_by_time(self, t: float) -> TemporalMatrix:
-        index = np.round((t - self.t0) * 86400 / self.dt).astype(int)
-        return self.get_temporal_rotary_matrix(index)
+    def get_index(self, t: float) -> int:
+        """
+        Returns the index corresponding to the row containing the nearest timestamp of 't'.
+        :param t: target timestamp to find the closest match for.
+        :return: index of the matrix with the nearest timestamp.
+        """
+        return np.round((t - self.t0) * 86400 / self.dt).astype(int)
