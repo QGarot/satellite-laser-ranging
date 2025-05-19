@@ -5,10 +5,8 @@ import numpy as np
 class RotaryMatrixReader(Reader):
     def __init__(self, file: str):
         super().__init__(file)
-        self.memory_map = np.memmap(self.npy_file,
-                                    mode="r",
-                                    shape=(self.number_of_recordings, self.number_of_columns),
-                                    dtype=float)
+        self.t0 = self.get_temporal_rotary_matrix(0).time
+        self.dt = 0.1
 
     def get_temporal_rotary_matrix(self, n: int) -> TemporalMatrix:
         """
@@ -21,3 +19,7 @@ class RotaryMatrixReader(Reader):
         time = row[0]
         matrix = row[1:].reshape((3, 3))  # The next 9 values form a 3x3 matrix
         return TemporalMatrix(time, matrix)
+
+    def get_temporal_rotary_matrix_by_time(self, t: float) -> TemporalMatrix:
+        index = np.round((t - self.t0) * 86400 / self.dt).astype(int)
+        return self.get_temporal_rotary_matrix(index)

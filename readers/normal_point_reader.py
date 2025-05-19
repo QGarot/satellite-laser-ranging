@@ -1,14 +1,9 @@
 from readers.reader import Reader
 from slr.normal_point import NormalPoint
-import numpy as np
 
 class NormalPointReader(Reader):
     def __init__(self, file: str):
         super().__init__(file)
-        self.memory_map = np.memmap(self.npy_file,
-                                    mode="r",
-                                    shape=(self.number_of_recordings, self.number_of_columns),
-                                    dtype=float)
 
     def get_normal_points(self, n: int) -> NormalPoint:
         """
