@@ -32,4 +32,5 @@ class StationPositionReader(Reader):
         :param t: target timestamp to find the closest match for.
         :return: index of the row with the nearest timestamp.
         """
-        return np.round((t - self.t0) / self.dt).astype(int)
+        adjusted_day = np.floor(t - 0.5) + 0.5
+        return np.where(self.loaded_data[:, 0] == adjusted_day)[0][0]
