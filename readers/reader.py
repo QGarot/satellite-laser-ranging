@@ -1,6 +1,8 @@
 import numpy as np
 from os.path import exists
 
+from config.config import DATA_DIRECTORY
+
 
 class Reader:
     def __init__(self, file: str):
@@ -25,7 +27,7 @@ class Reader:
         base = self.file.split("/")[-1].split(".")[0]
         # Now we look for the folder (in the txt directory) containing the current file 'self.file'
         folder = self.file.split("/")[-2]
-        return f"statictest/binary/{folder}/{base}.npy"
+        return f"{DATA_DIRECTORY}/binary/{folder}/{base}.npy"
 
     def generate_npy_file_v2(self) -> None:
         """

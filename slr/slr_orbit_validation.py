@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from matplotlib import pyplot as plt
 
 from include.interpolation import neville
@@ -33,6 +35,19 @@ class SLROrbitValidation:
         # List of orbit readers
         self.orbits = []
         self.load_satellite_orbits()
+
+    @staticmethod
+    def mjd_2_datetime(mjd: float) -> datetime:
+        """
+        Convert a Modified Julian Date (MJD) to a standard datetime object.
+        The Modified Julian Date is defined as the number of days since midnight on November 17, 1858 (UTC).
+        This function returns a Python `datetime.datetime` object representing the corresponding
+        calendar date and time.
+        :param mjd: Modified Julian Date to convert. Fractional values represent time of day
+        :return: The corresponding UTC datetime
+        """
+        mjd_epoch = datetime(1858, 11, 17, 0, 0, 0)
+        return mjd_epoch + timedelta(days=mjd)
 
     @staticmethod
     def display_3d_vectors(vectors: np.ndarray, additional_vectors: np.ndarray, interactive_mode: bool = False) -> None:
@@ -82,6 +97,64 @@ class SLROrbitValidation:
 
             plt.show()
 
+    def second_orbit_validation(self, debug: False) -> None:
+        """
+        For each normal point, compares the measured distance and the computed distance.
+        The 'computed distance' is the euclidian norm of the difference between:
+            - the position of the satellite at t_bounce
+            - the position of the ground station at t_emission
+        both written in CRF (Celestial Reference Frame).
+
+        This method plots the residuals histogram and prints their mean and standard deviation.
+        :return:
+        """
+        measured_distances = []
+        computed_distances = []
+        transmit_timestamps = []
+        residuals = []
+
+        for k in range(0, self.np_reader.number_of_recordings):
+            if debug:
+                print(f"\n\n------------------------------ Normal point {k} ------------------------------")
+
+            normal_point = self.np_reader.get_normal_points(k)
+            station_pos = self.get_crf_position(normal_point.time, 1, visualization=False, debug=debug)
+            satellite_pos = self.get_satellite_position(normal_point.get_time_bounce(), 1, visualization=False, debug=debug)
+            dist = np.linalg.norm(satellite_pos.vector - station_pos.vector)
+            residual = abs(normal_point.measured_range - dist)
+
+            transmit_timestamps.append(normal_point.time)
+            measured_distances.append(normal_point.measured_range)
+            computed_distances.append(dist)
+            residuals.append(residual)
+
+            if debug:
+                print(f"=====> NP timestamp [{normal_point.time:.10e}] | "
+                      f" datetime [{self.mjd_2_datetime(normal_point.time)}] | "
+                      f"t_bounce [{normal_point.get_time_bounce():.6e}] | "
+                      f"measured dist. [{normal_point.measured_range:.6e}] | "
+                      f"computed dist. [{dist:.6e}] | "
+                      f"error [{residual:.4e}]")
+
+        default_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        x = np.arange(len(residuals))
+        width = 0.6
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.bar(x, residuals, width=width, color=default_colors[1])
+
+        ax.grid(True, axis='y', linestyle='--', alpha=0.8)
+
+        ax.axhline(0, color='black', linewidth=1)
+
+        plt.tight_layout()
+        plt.show()
+
+        mean = np.mean(residuals)
+        std_dev = np.std(residuals)
+        print(f"Mean residual: {mean:.4f} m")
+        print(f"Standard deviation: {std_dev:.4f} m")
+
     def first_orbit_validation(self, debug: False) -> None:
         """
         For each normal point, compares the measured distance and the computed distance.
@@ -113,10 +186,11 @@ class SLROrbitValidation:
 
             if debug:
                 print(f"=====> NP timestamp [{normal_point.time:.10e}] | "
+                      f" datetime [{self.mjd_2_datetime(normal_point.time)}] | "
                       f"t_bounce [{normal_point.get_time_bounce():.6e}] | "
                       f"measured dist. [{normal_point.measured_range:.6e}] | "
                       f"computed dist. [{dist:.6e}] | "
-                      f"error [{residual:.6e}]")
+                      f"error [{residual:.4e}]")
 
 
         x = np.array(transmit_timestamps)
@@ -282,7 +356,7 @@ class SLROrbitValidation:
         :return:station
         """
         if debug:
-            print(f"=====> 'get_satellite_position()':")
+            print(f"=====> [Satellite] 'get_satellite_position()':")
 
         # Day corresponding to the given time t
         day = floor(t)
